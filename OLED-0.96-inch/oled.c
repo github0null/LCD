@@ -1,12 +1,23 @@
 #include "oled.h"
 
+#define OLED_OFF 0xAE
+#define OLED_ON 0xAF
+
+#define OLED_SET_DISPLAY_ROW_OFFSET 0xD3
+
+#define OLED_CALC_START_ROW(row) (uint8_t)(0x40U | (row & 0x3FU))
+#define OLED_CALC_START_PAGE(page) (uint8_t)(0xB0U | (page & 0x07U))
+
+#define OLED_CALC_START_COLUMN_HIGH(col) (uint8_t)(((col & 0xF0U) >> 4) | 0x10)
+#define OLED_CALC_START_COLUMN_LOW(col) (uint8_t)(col & 0x0F)
+
 WriteWordCallBack _WriteWord;
 
 uint8_t _x, _page;
 
-void _AddPosition(uint32_t n)
+void _AddPosition(uint8_t n)
 {
-    uint32_t i = 0;
+    uint8_t i = 0;
     while (i < n)
     {
         if (++_x > 127U)
@@ -16,10 +27,10 @@ void _AddPosition(uint32_t n)
 }
 
 #define _WriteData(_data)         \
-    _WriteWord(0x4000 | (_data)); \
+    _WriteWord(0x4000 | ((uint16_t)_data)); \
     _AddPosition(1)
 
-#define _WriteCmd(_cmd) _WriteWord(0x00FF & _cmd)
+#define _WriteCmd(_cmd) _WriteWord(0x00FF & ((uint16_t)_cmd))
 
 void OLED_Init(WriteWordCallBack writeWordCallBk)
 {
@@ -47,14 +58,14 @@ void OLED_Init(WriteWordCallBack writeWordCallBk)
     _WriteCmd(OLED_ON);
 }
 
-void OLED_SetColumn(uint32_t col)
+void OLED_SetColumn(uint8_t col)
 {
     _WriteCmd(OLED_CALC_START_COLUMN_LOW(col));
     _WriteCmd(OLED_CALC_START_COLUMN_HIGH(col));
     _x = col;
 }
 
-void OLED_SetPage(uint32_t p)
+void OLED_SetPage(uint8_t p)
 {
     _WriteCmd(OLED_CALC_START_PAGE(p));
     _page = p;
@@ -70,13 +81,13 @@ uint8_t OLED_GetPage()
     return _page;
 }
 
-void OLED_SetColumnAndPage(uint32_t col, uint32_t p)
+void OLED_SetColumnAndPage(uint8_t col, uint8_t p)
 {
     OLED_SetColumn(col);
     OLED_SetPage(p);
 }
 
-void OLED_WriteData(uint8_t _data, uint32_t x, uint32_t page)
+void OLED_WriteData(uint8_t _data, uint8_t x, uint8_t page)
 {
     OLED_SetColumnAndPage(x, page);
     _WriteData(_data);
@@ -87,7 +98,7 @@ void OLED_WriteCommand(uint8_t _cmd)
     _WriteCmd(_cmd);
 }
 
-void OLED_WritePoint(uint32_t x, uint32_t y, bool val)
+void OLED_WritePoint(uint8_t x, uint8_t y, uint8_t val)
 {
     uint8_t page = y / 8, pos = 0x01 << (y % 8), _data;
     OLED_SetColumnAndPage(x, page);
@@ -95,37 +106,37 @@ void OLED_WritePoint(uint32_t x, uint32_t y, bool val)
     _WriteData(_data);
 }
 
-void OLED_WriteData_8x16(uint8_t (*arr)[2][8])
+void OLED_WriteData_8x16(OLED_Data8x16 arr)
 {
-    uint32_t x = _x, page = _page;
-    OLED_WriteDataArray((*arr)[0], 8);
+    uint8_t x = _x, page = _page;
+    OLED_WriteDataArray(arr[0], 8);
     OLED_SetColumnAndPage(x, page + 1);
-    OLED_WriteDataArray((*arr)[1], 8);
+    OLED_WriteDataArray(arr[1], 8);
     OLED_SetPage(page);
 }
 
-void OLED_WriteData_16x16(uint8_t (*arr)[2][16])
+void OLED_WriteData_16x16(OLED_Data16x16 arr)
 {
-    uint32_t x = _x, page = _page;
-    OLED_WriteDataArray((*arr)[0], 16);
+    uint8_t x = _x, page = _page;
+    OLED_WriteDataArray(arr[0], 16);
     OLED_SetColumnAndPage(x, page + 1);
-    OLED_WriteDataArray((*arr)[1], 16);
+    OLED_WriteDataArray(arr[1], 16);
     OLED_SetPage(page);
 }
 
 void OLED_WriteDataArray(uint8_t *arr, uint8_t len)
 {
-    uint32_t i = 0;
+    uint8_t i = 0;
     while (i < len)
     {
-        _WriteWord(0x4000 | arr[i++]);
+        _WriteWord(0x4000 | (uint16_t)arr[i++]);
     }
     _AddPosition(len);
 }
 
 void OLED_ClearEndOfPage(uint8_t page)
 {
-    int x = _x;
+    int8_t x = _x;
 
     OLED_SetPage(page);
 
@@ -161,7 +172,7 @@ void OLED_ClearAll(void)
 
 #ifdef OLED_USE_8x16_CHAR_TABLE
 
-const unsigned char _ascii_8x16[][2][8] = {
+CONST OLED_Data8x16 CODE _ascii_8x16[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 0
     0x00, 0x00, 0x00, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x33, 0x30, 0x00, 0x00, 0x00, //! 1
     0x00, 0x10, 0x0C, 0x06, 0x10, 0x0C, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //" 2
@@ -259,11 +270,11 @@ const unsigned char _ascii_8x16[][2][8] = {
     0x00, 0x06, 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  //~ 94
 };
 
-#define CHAR_8X16(_code) ((uint8_t(*)[2][8]) & _ascii_8x16[(_code)-32])
+#define CHAR_8X16(_code) _ascii_8x16[(_code)-32]
 
-void OLED_WriteString_8x16(char *_str)
+void OLED_WriteString_8x16(const char *_str)
 {
-    unsigned int index = 0;
+    uint16_t index = 0;
 
     while (_str[index] != 0)
     {
