@@ -3,18 +3,11 @@
 
 #include <Drivers_config.h>
 
-#ifdef __C51__
-#define CODE code
-#define CONST
-#else
-#define CODE
-#define CONST const
-#endif
-
-typedef void (*WriteWordCallBack)(uint16_t);
-
 typedef uint8_t OLED_Data8x16[2][8];
 typedef uint8_t OLED_Data16x16[2][16];
+
+typedef void (*WriteWordCallBack)(uint16_t);
+typedef OLED_Data8x16 *(*GetAsciiCharCallBk)(char);
 
 #define OLED_DEVICE_ADDR 0x78
 
@@ -37,15 +30,19 @@ typedef uint8_t OLED_Data16x16[2][16];
 
 #define OLED_SET_DISPLAY_CONTRAST 0x81
 
-void OLED_Init(WriteWordCallBack writeWordCallBk);
+typedef struct
+{
+    WriteWordCallBack writeWord;
+    GetAsciiCharCallBk getAsciiChar;
+} OLED_InitTypeDef;
+
+void OLED_Init(OLED_InitTypeDef *initDef);
 
 void OLED_SetColumn(uint8_t x);
 void OLED_SetPage(uint8_t y);
 void OLED_SetColumnAndPage(uint8_t x, uint8_t page);
 
-void OLED_WritePoint(uint8_t x, uint8_t y, uint8_t val);
 void OLED_WriteData(uint8_t _data, uint8_t x, uint8_t page);
-
 void OLED_WriteCommand(uint8_t _cmd);
 
 void OLED_WriteDataArray(uint8_t *arr, uint8_t len);
@@ -59,10 +56,6 @@ void OLED_ClearAll(void);
 uint8_t OLED_GetColumn(void);
 uint8_t OLED_GetPage(void);
 
-#ifdef OLED_USE_8x16_CHAR_TABLE
-
-void OLED_WriteString_8x16(const char *_str);
-
-#endif
+char OLED_putchar(char _char);
 
 #endif
