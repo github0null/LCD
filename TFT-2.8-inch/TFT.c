@@ -16,7 +16,7 @@ uint32_t _tableLen;
 
 //------------------------------------------
 
-inline void _WriteData(uint8_t isData, uint8_t _dat)
+__STATIC_INLINE void _WriteData(uint8_t isData, uint8_t _dat)
 {
     TFT_Pin_CS(0);
     TFT_Pin_DC(isData);
@@ -24,7 +24,7 @@ inline void _WriteData(uint8_t isData, uint8_t _dat)
     TFT_Pin_CS(1);
 }
 
-inline void _WriteRegister(uint8_t addr, uint8_t _dat)
+__STATIC_INLINE void _WriteRegister(uint8_t addr, uint8_t _dat)
 {
     TFT_Pin_CS(0);
     TFT_Pin_DC(TFT_CMD);
@@ -34,13 +34,13 @@ inline void _WriteRegister(uint8_t addr, uint8_t _dat)
     TFT_Pin_CS(1);
 }
 
-inline void _WriteWordCallBk(uint16_t _word)
+__STATIC_INLINE void _WriteWordCallBk(uint16_t _word)
 {
     _WriteByteCallBk((uint8_t)((_word) >> 8));
     _WriteByteCallBk((uint8_t)((_word)));
 }
 
-inline void _WriteColor(uint16_t color)
+__STATIC_INLINE void _WriteColor(uint16_t color)
 {
     TFT_Pin_CS(0);
     TFT_Pin_DC(TFT_DATA);
@@ -48,7 +48,7 @@ inline void _WriteColor(uint16_t color)
     TFT_Pin_CS(1);
 }
 
-inline int32_t _FindCharIndex(char *_wChar)
+int32_t _FindCharIndex(char *_wChar)
 {
     uint32_t i = 0;
 
@@ -661,7 +661,7 @@ const uint8_t _char_8x16[][16] = {
 
 #define _Char8x16(_char) ((Char_8x16 *)(&_char_8x16[(_char)-32]))
 
-__INLINE char _ToDisplayableChar(char c)
+__STATIC_INLINE char _ToDisplayableChar(char c)
 {
     if (c == '\t')
     {
