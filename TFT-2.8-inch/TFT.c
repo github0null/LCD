@@ -4,11 +4,12 @@
 #define _SetYCmd 0x2B
 #define _wRamCmd 0x2C
 
+#define TFT_WriteByte(_dat) __TFT_WriteByte(_dat)
+
 //TFT参数
 TFT_Info _lcdInfo;        //管理LCD重要参数
 uint16_t _defForeColor; //前景 默认白色
 uint16_t _defBkColor;   //背景 默认为黑色
-WriteByteCallBk _WriteByteCallBk;
 DelayCallBk _Delay;
 
 TFT_CharInfo *_chineseCharTable;
@@ -20,7 +21,7 @@ __STATIC_INLINE void _WriteData(uint8_t isData, uint8_t _dat)
 {
     TFT_Pin_CS(0);
     TFT_Pin_DC(isData);
-    _WriteByteCallBk(_dat);
+    TFT_WriteByte(_dat);
     TFT_Pin_CS(1);
 }
 
@@ -28,23 +29,18 @@ __STATIC_INLINE void _WriteRegister(uint8_t addr, uint8_t _dat)
 {
     TFT_Pin_CS(0);
     TFT_Pin_DC(TFT_CMD);
-    _WriteByteCallBk(addr);
+    TFT_WriteByte(addr);
     TFT_Pin_DC(TFT_DATA);
-    _WriteByteCallBk(_dat);
+    TFT_WriteByte(_dat);
     TFT_Pin_CS(1);
-}
-
-__STATIC_INLINE void _WriteWordCallBk(uint16_t _word)
-{
-    _WriteByteCallBk((uint8_t)((_word) >> 8));
-    _WriteByteCallBk((uint8_t)((_word)));
 }
 
 __STATIC_INLINE void _WriteColor(uint16_t color)
 {
     TFT_Pin_CS(0);
     TFT_Pin_DC(TFT_DATA);
-    _WriteWordCallBk(color);
+    TFT_WriteByte((uint8_t)(color >> 8));
+    TFT_WriteByte((uint8_t)(color & 0xFF));
     TFT_Pin_CS(1);
 }
 
@@ -68,9 +64,8 @@ int32_t _FindCharIndex(char *_wChar)
 
 //----------------------------------------
 
-void TFT_Init(DelayCallBk delayCallBk, WriteByteCallBk writeDataCallBk)
+void TFT_Init(DelayCallBk delayCallBk)
 {
-    _WriteByteCallBk = writeDataCallBk;
     _Delay = delayCallBk;
 
     TFT_Pin_RST(0);
@@ -320,7 +315,7 @@ void TFT_DrawRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint1
     TFT_Pin_CS(0);
     TFT_Pin_DC(TFT_DATA);
     while (i++ < size)
-        _WriteWordCallBk(color);
+        _WriteColor(color);
     TFT_Pin_CS(1);
 }
 
@@ -338,7 +333,7 @@ void TFT_DrawChar8x16(uint16_t x, uint16_t y, uint16_t color, Char_8x16 *Char)
         column = 0;
         while (column < 8)
         {
-            _WriteWordCallBk((cChar & 0x01) ? color : _defBkColor);
+            _WriteColor((cChar & 0x01) ? color : _defBkColor);
             cChar >>= 1;
             column++;
         }
@@ -361,7 +356,7 @@ void TFT_DrawChar16x16(uint16_t x, uint16_t y, uint16_t color, Char_16x16 *CharA
         column = 0;
         while (column < 16)
         {
-            _WriteWordCallBk((cChar & 0x01) ? color : _defBkColor);
+            _WriteColor((cChar & 0x01) ? color : _defBkColor);
             cChar >>= 1;
             column++;
         }

@@ -1,6 +1,20 @@
 #ifndef _H_TFT
 #define _H_TFT
 
+//=================== MCU interface ======================
+
+/* implement TFT pins */
+#include <stm32f4xx_bitband.h>
+#define TFT_Pin_RST(val) PAout(0) = (val)
+#define TFT_Pin_DC(val) PAout(1) = (val)
+#define TFT_BKLight_CTRL(val) PAout(2) = (val)
+#define TFT_Pin_CS(val) PAout(4) = (val)
+
+/* this function must be implement */
+extern void __TFT_WriteByte(uint8_t dat);
+
+//=====================================================
+
 #include "stdint.h"
 
 //LCD重要参数集
@@ -20,15 +34,6 @@ typedef struct
 //定义LCD的尺寸
 #define TFT_W 240U
 #define TFT_H 320U
-
-//-----------------------Pin-define-------------
-
-#include "BITBAND.h"
-
-#define TFT_Pin_RST(val) PAout(0) = (val)
-#define TFT_Pin_DC(val) PAout(1) = (val)
-#define TFT_BKLight_CTRL(val) PAout(2) = (val)
-#define TFT_Pin_CS(val) PAout(3) = (val) 
 
 //画笔颜色
 
@@ -63,7 +68,6 @@ typedef struct
 #define TFT_CMD 0
 #define TFT_DATA 1
 
-typedef void (*WriteByteCallBk)(uint8_t _byte);
 typedef void (*DelayCallBk)(uint32_t ms);
 
 typedef uint8_t Char_8x16[16];
@@ -77,7 +81,7 @@ typedef struct
 
 //------
 
-void TFT_Init(DelayCallBk delayCallBk, WriteByteCallBk writeByteCallBk);
+void TFT_Init(DelayCallBk delayCallBk);
 
 TFT_Info *TFT_GetInfo(void);
 
