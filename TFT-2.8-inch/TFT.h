@@ -1,6 +1,10 @@
 #ifndef _H_TFT
 #define _H_TFT
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //=================== MCU interface ======================
 
 /* implement TFT pins */
@@ -117,6 +121,10 @@ void TFT_DrawString8x16(uint16_t x, uint16_t y, uint16_t color, char *str);
 
 void TFT_DrawAsciiChar8x16(uint16_t x, uint16_t y, uint16_t color, char _char);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
