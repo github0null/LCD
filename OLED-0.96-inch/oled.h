@@ -1,42 +1,69 @@
 #ifndef _H_OLED_1306
 #define _H_OLED_1306
 
-#include <Drivers_config.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//============= interface ==============
+
+#include <stdint.h>
 
 typedef uint8_t OLED_Data8x16[2][8];
 typedef uint8_t OLED_Data16x16[2][16];
 
-typedef void (*WriteWordCallBack)(uint16_t);
-typedef OLED_Data8x16 *(*GetAsciiCharCallBk)(char);
+/* must implement this method */
+extern void _OLED_WriteWord(uint16_t _word);
+
+/* must implement this method */
+extern OLED_Data8x16 *_OLED_GetAsciiCode(char c);
+
+#ifdef OLED_USE_GBK_CHAR
+/* implement this method to support chinese char */
+extern OLED_Data16x16 *_OLED_GetGbkCode(uint8_t byte1, uint8_t byte2);
+#endif
+
+//======================================
 
 #define OLED_DEVICE_ADDR 0x78
 
-#define OLED_MODE_SCREEN_NORMAL 0xA6
-#define OLED_MODE_SCREEN_INVERSE 0xA7
+typedef enum {
+    OLED_MODE_SCREEN_NORMAL = 0xA6,
+    OLED_MODE_SCREEN_INVERSE = 0xA7
+} OLED_ScreenMode;
 
-#define OLED_MODE_DISPLAY_RESUME_RAM 0xA4
-#define OLED_MODE_DISPLAY_IGNORE_RAM 0xA5
+typedef enum {
+    OLED_MODE_DISPLAY_RESUME_RAM = 0xA4,
+    OLED_MODE_DISPLAY_IGNORE_RAM = 0xA5
+} OLED_DisplayMode;
 
-#define OLED_MODE_NORMAL_ROW 0xC0
-#define OLED_MODE_INVERSE_ROW 0xC8
+typedef enum {
+    OLED_MODE_NORMAL_ROW = 0xC0,
+    OLED_MODE_INVERSE_ROW = 0xC8
+} OLED_RowMode;
 
-#define OLED_MODE_NORMAL_COLUMN 0xA0
-#define OLED_MODE_INVERSE_COLUMN 0xA1
+typedef enum {
+    OLED_MODE_NORMAL_COLUMN = 0xA0,
+    OLED_MODE_INVERSE_COLUMN = 0xA1
+} OLED_ColumnMode;
 
-#define OLED_SET_RAM_ADDR_MODE 0x20
-#define OLED_RAM_ADDR_MODE_HORIZONTAL 0x00
-#define OLED_RAM_ADDR_MODE_VERTICAL 0x01
-#define OLED_RAM_ADDR_MODE_PAGE 0x02
-
-#define OLED_SET_DISPLAY_CONTRAST 0x81
+typedef enum {
+    OLED_RAM_ADDR_MODE_HORIZONTAL = 0x00,
+    OLED_RAM_ADDR_MODE_VERTICAL = 0x01,
+    OLED_RAM_ADDR_MODE_PAGE = 0x02
+} OLED_AddressMode;
 
 typedef struct
 {
-    WriteWordCallBack writeWord;
-    GetAsciiCharCallBk getAsciiChar;
+    OLED_ScreenMode screenMode;
+    OLED_DisplayMode displayMode;
+    OLED_RowMode rowMode;
+    OLED_ColumnMode columnMode;
+    OLED_AddressMode addrMode;
+    uint8_t light; // default 0xEF
 } OLED_InitTypeDef;
 
-void OLED_Init(OLED_InitTypeDef *initDef);
+void OLED_Init(OLED_InitTypeDef *oledDef);
 
 void OLED_SetColumn(uint8_t x);
 void OLED_SetPage(uint8_t y);
@@ -56,6 +83,10 @@ void OLED_ClearAll(void);
 uint8_t OLED_GetColumn(void);
 uint8_t OLED_GetPage(void);
 
-char OLED_putchar(char _char);
+void OLED_putchar(char _char);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

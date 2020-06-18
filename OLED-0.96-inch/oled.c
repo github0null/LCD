@@ -4,6 +4,8 @@
 #define OLED_ON 0xAF
 
 #define OLED_SET_DISPLAY_ROW_OFFSET 0xD3
+#define OLED_SET_RAM_ADDR_MODE 0x20
+#define OLED_SET_DISPLAY_CONTRAST 0x81
 
 #define OLED_CALC_START_ROW(row) (uint8_t)(0x40U | (row & 0x3FU))
 #define OLED_CALC_START_PAGE(page) (uint8_t)(0xB0U | (page & 0x07U))
@@ -11,8 +13,9 @@
 #define OLED_CALC_START_COLUMN_HIGH(col) (uint8_t)(((col & 0xF0U) >> 4) | 0x10)
 #define OLED_CALC_START_COLUMN_LOW(col) (uint8_t)(col & 0x0F)
 
-WriteWordCallBack _WriteWord;
-GetAsciiCharCallBk _getChar8x16;
+#define _WriteWord(word) _OLED_WriteWord(word)
+#define _GetAsciiCode(c) _OLED_GetAsciiCode(c)
+
 uint8_t _x, _page;
 
 void _AddPosition(uint8_t n)
@@ -26,35 +29,36 @@ void _AddPosition(uint8_t n)
     }
 }
 
+#define AddPage() (_page = _page >= 7 ? 0 : (_page + 1))
+
 #define _WriteData(_data)                   \
     _WriteWord(0x4000 | ((uint16_t)_data)); \
     _AddPosition(1)
 
 #define _WriteCmd(_cmd) _WriteWord(0x00FF & ((uint16_t)_cmd))
 
-void OLED_Init(OLED_InitTypeDef *initDef)
+//======================================================================
+
+void OLED_Init(OLED_InitTypeDef *oledDef)
 {
-    _WriteWord = initDef->writeWord;
-    _getChar8x16 = initDef->getAsciiChar;
+    _WriteCmd(OLED_OFF);
 
-    _WriteCmd(OLED_OFF); //关闭显示
-
-    _WriteCmd(0x8D); //电荷泵设置
+    _WriteCmd(0x8D);
     _WriteCmd(0x14);
 
     _WriteCmd(OLED_SET_RAM_ADDR_MODE);
-    _WriteCmd(OLED_RAM_ADDR_MODE_PAGE);
+    _WriteCmd(oledDef->addrMode);
 
     _WriteCmd(OLED_CALC_START_PAGE(0));
 
-    _WriteCmd(OLED_MODE_INVERSE_COLUMN);
-    _WriteCmd(OLED_MODE_INVERSE_ROW);
+    _WriteCmd(oledDef->columnMode);
+    _WriteCmd(oledDef->rowMode);
 
     _WriteCmd(OLED_SET_DISPLAY_CONTRAST);
-    _WriteCmd(0xEF);
+    _WriteCmd(oledDef->light);
 
-    _WriteCmd(OLED_MODE_DISPLAY_RESUME_RAM);
-    _WriteCmd(OLED_MODE_SCREEN_NORMAL);
+    _WriteCmd(oledDef->displayMode);
+    _WriteCmd(oledDef->screenMode);
 
     _WriteCmd(OLED_ON);
 }
@@ -129,7 +133,7 @@ void OLED_WriteDataArray(uint8_t *arr, uint8_t len)
 
 void OLED_ClearEndOfPage(uint8_t page)
 {
-    int8_t x = _x;
+    uint8_t x = _x;
 
     OLED_SetPage(page);
 
@@ -143,14 +147,16 @@ void OLED_ClearEndOfPage(uint8_t page)
 
 void OLED_ClearPage(uint8_t page)
 {
-    uint8_t i;
-
+    uint8_t i, prevCol = _x, prevPage = _page;
+    
     OLED_SetColumnAndPage(0, page);
 
     for (i = 0; i < 128; i++)
     {
         _WriteData(0x00);
     }
+
+    OLED_SetColumnAndPage(prevCol, prevPage);
 }
 
 void OLED_ClearAll(void)
@@ -163,10 +169,35 @@ void OLED_ClearAll(void)
     }
 }
 
-char OLED_putchar(char _char)
-{
-    OLED_Data8x16 *cDat = _getChar8x16(_char);
-    OLED_WriteData_8x16(*cDat);
-    return _char;
-}
+#ifdef OLED_USE_GBK_CHAR
+#define _GetGbkCode(c1, c2) _OLED_GetGbkCode(c1, c2)
+uint8_t _firstByte;
+#endif
 
+void OLED_putchar(char _char)
+{
+    if (_char == '\n')
+    {
+        AddPage();
+        OLED_SetColumn(0);
+        return;
+    }
+
+#ifdef OLED_USE_GBK_CHAR
+    if ((uint8_t)_char > 0x80 && _firstByte == 0)
+    {
+        _firstByte = (uint8_t)_char;
+    }
+    else if (_firstByte != 0)
+    {
+        OLED_WriteData_16x16(*_GetGbkCode(_firstByte, (uint8_t)_char));
+        _firstByte = 0;
+    }
+    else
+    {
+        OLED_WriteData_8x16(*_GetAsciiCode(_char));
+    }
+#else
+    OLED_WriteData_8x16(*_GetAsciiCode(_char));
+#endif
+}
