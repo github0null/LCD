@@ -180,7 +180,7 @@ void OLED_putchar(char _char)
     {
         AddPage();
         AddPage();
-        OLED_SetColumn(0);
+        OLED_SetColumnAndPage(0, _page);
         return;
     }
 
