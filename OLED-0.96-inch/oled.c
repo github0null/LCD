@@ -133,7 +133,7 @@ void OLED_WriteDataArray(uint8_t *arr, uint8_t len)
 
 void OLED_ClearEndOfPage(uint8_t page)
 {
-    uint8_t x = _x;
+    uint8_t prevX = _x, prevPage = _page;
 
     OLED_SetPage(page);
 
@@ -142,7 +142,7 @@ void OLED_ClearEndOfPage(uint8_t page)
         _WriteData(0x00);
     }
 
-    OLED_SetColumn(x);
+    OLED_SetColumnAndPage(prevX, prevPage);
 }
 
 void OLED_ClearPage(uint8_t page)
