@@ -179,7 +179,7 @@ void OLED_putchar(char _char)
     if (_char == '\n')
     {
         AddPage();
-        AddPage();
+        AddPage(); // two rows
         OLED_SetColumnAndPage(0, _page);
         return;
     }
