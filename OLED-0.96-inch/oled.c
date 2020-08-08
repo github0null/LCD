@@ -3,6 +3,9 @@
 #define OLED_OFF 0xAE
 #define OLED_ON 0xAF
 
+#define OLED_MODE_DISPLAY_RESUME_RAM 0xA4
+#define OLED_MODE_DISPLAY_IGNORE_RAM 0xA5
+
 #define OLED_SET_DISPLAY_ROW_OFFSET 0xD3
 #define OLED_SET_RAM_ADDR_MODE 0x20
 #define OLED_SET_DISPLAY_CONTRAST 0x81
@@ -57,7 +60,7 @@ void OLED_Init(OLED_InitTypeDef *oledDef)
     _WriteCmd(OLED_SET_DISPLAY_CONTRAST);
     _WriteCmd(oledDef->light);
 
-    _WriteCmd(oledDef->displayMode);
+    _WriteCmd(OLED_MODE_DISPLAY_RESUME_RAM);
     _WriteCmd(oledDef->screenMode);
 
     _WriteCmd(OLED_ON);

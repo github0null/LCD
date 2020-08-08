@@ -33,11 +33,6 @@ typedef enum {
 } OLED_ScreenMode;
 
 typedef enum {
-    OLED_MODE_DISPLAY_RESUME_RAM = 0xA4,
-    OLED_MODE_DISPLAY_IGNORE_RAM = 0xA5
-} OLED_DisplayMode;
-
-typedef enum {
     OLED_MODE_NORMAL_ROW = 0xC0,
     OLED_MODE_INVERSE_ROW = 0xC8
 } OLED_RowMode;
@@ -56,7 +51,6 @@ typedef enum {
 typedef struct
 {
     OLED_ScreenMode screenMode;
-    OLED_DisplayMode displayMode;
     OLED_RowMode rowMode;
     OLED_ColumnMode columnMode;
     OLED_AddressMode addrMode;
