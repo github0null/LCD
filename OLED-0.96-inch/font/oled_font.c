@@ -1,3 +1,7 @@
+/**
+ * This is a simple implement for function: '_OLED_GetAsciiCode' and '_OLED_GetGbkCode'
+*/
+
 #include <oled.h>
 
 #ifdef __GNUC__
