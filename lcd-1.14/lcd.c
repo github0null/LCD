@@ -99,7 +99,7 @@ void LCD_Init(LCD_InitTypedef *initDef)
     lcd_writeByte = initDef->writeDataCallbk;
 
     LCD_PIN_RST_LOW();
-    lcd_delay(20);
+    lcd_delay(50);
     LCD_PIN_RST_HIGH();
     lcd_delay(100);
 
@@ -228,6 +228,8 @@ void LCD_SetWindow(uint16_t x, uint16_t y, uint16_t xEnd, uint16_t yEnd)
     default:
         break;
     }
+    
+    LCD_Lock();
 
     _WriteData(LCD_CMD, _SetXCmd);
     _WriteData(LCD_DATA, x >> 8);
@@ -242,10 +244,14 @@ void LCD_SetWindow(uint16_t x, uint16_t y, uint16_t xEnd, uint16_t yEnd)
     _WriteData(LCD_DATA, 0x00FF & yEnd);
 
     _PrepareWrite(); //开始写入GRAM
+    
+    LCD_UnLock();
 }
 
 void LCD_SetDirection(LCD_ScreenDirection direction)
 {
+    LCD_Lock();
+
     _lcdInfo.direction = direction; // set direction
 
     switch (direction)
@@ -273,6 +279,8 @@ void LCD_SetDirection(LCD_ScreenDirection direction)
     default:
         break;
     }
+    
+    LCD_UnLock();
 }
 
 uint16_t LCD_GetDefaultForeColor(void)
@@ -297,7 +305,9 @@ void LCD_SetDefaultBkColor(uint16_t bkColor)
 
 void LCD_WriteData(uint16_t colorData)
 {
+    LCD_Lock();
     _WriteColor(colorData);
+    LCD_UnLock();
 }
 
 void LCD_ClearAll(void)
@@ -307,8 +317,10 @@ void LCD_ClearAll(void)
 
 void LCD_DrawPoint(uint16_t x, uint16_t y, uint16_t color)
 {
+    LCD_Lock();
     LCD_SetWindow(x, y, x, y);
     _WriteColor(color);
+    LCD_UnLock();
 }
 
 void LCD_DrawLine(uint16_t x, uint16_t y, uint16_t xEnd, uint16_t yEnd, uint16_t color)
@@ -358,15 +370,22 @@ void LCD_DrawLine(uint16_t x, uint16_t y, uint16_t xEnd, uint16_t yEnd, uint16_t
 void LCD_DrawRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color)
 {
     uint32_t i = 0, size = width * height;
+
+    LCD_Lock();
+
     LCD_SetWindow(x, y, width + x - 1, height + y - 1);
     while (i++ < size)
         _WriteColor(color);
+        
+    LCD_UnLock();
 }
 
 void LCD_DrawChar8x16(uint16_t x, uint16_t y, uint16_t color, Char_8x16 *Char)
 {
     uint8_t cChar;
     uint16_t line = 0, column;
+    
+    LCD_Lock();
 
     LCD_SetWindow(x, y, x + 7, y + 15);
 
@@ -382,12 +401,16 @@ void LCD_DrawChar8x16(uint16_t x, uint16_t y, uint16_t color, Char_8x16 *Char)
         }
         line++;
     }
+    
+    LCD_UnLock();
 }
 
 void LCD_DrawChar16x16(uint16_t x, uint16_t y, uint16_t color, Char_16x16 *CharArr)
 {
     uint16_t cChar;
     uint16_t line = 0, column;
+    
+    LCD_Lock();
 
     LCD_SetWindow(x, y, x + 15, y + 15);
 
@@ -403,6 +426,8 @@ void LCD_DrawChar16x16(uint16_t x, uint16_t y, uint16_t color, Char_16x16 *CharA
         }
         line++;
     }
+    
+    LCD_UnLock();
 }
 
 #ifdef USE_ASCII_CHAR_8x16

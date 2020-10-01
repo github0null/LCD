@@ -42,6 +42,14 @@ extern "C" {
 #error "LCD_PIN_BLK_LOW() must implement"
 #endif
 
+#ifndef LCD_Lock
+#define LCD_Lock()
+#endif
+
+#ifndef LCD_UnLock
+#define LCD_UnLock()
+#endif
+
 #ifndef __STATIC_INLINE
 #define __STATIC_INLINE
 #endif
