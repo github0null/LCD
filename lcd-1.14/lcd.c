@@ -29,7 +29,7 @@ uint32_t _tableLen;
 
 //------------------------------------------
 
-__STATIC_INLINE void _WriteData(uint8_t isData, uint8_t _dat)
+_LCD_INLINE void _WriteData(uint8_t isData, uint8_t _dat)
 {
     LCD_PIN_CS_LOW();
 
@@ -43,7 +43,7 @@ __STATIC_INLINE void _WriteData(uint8_t isData, uint8_t _dat)
     LCD_PIN_CS_HIGH();
 }
 
-__STATIC_INLINE void _WriteRegister(uint8_t addr, uint8_t _dat)
+_LCD_INLINE void _WriteRegister(uint8_t addr, uint8_t _dat)
 {
     LCD_PIN_CS_LOW();
     LCD_PIN_DC_LOW(); // LCD_CMD
@@ -56,7 +56,7 @@ __STATIC_INLINE void _WriteRegister(uint8_t addr, uint8_t _dat)
     LCD_PIN_CS_HIGH();
 }
 
-__STATIC_INLINE void _WriteColor(uint16_t color)
+_LCD_INLINE void _WriteColor(uint16_t color)
 {
     LCD_PIN_CS_LOW();
     LCD_PIN_DC_HIGH(); // LCD_DATA
@@ -696,7 +696,7 @@ const uint8_t _char_8x16[][16] = {
 
 #define _Char8x16(_char) ((Char_8x16 *)(&_char_8x16[(_char)-32]))
 
-__STATIC_INLINE char _ToDisplayableChar(char c)
+_LCD_INLINE char _ToDisplayableChar(char c)
 {
     if (c == '\t')
     {

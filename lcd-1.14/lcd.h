@@ -46,6 +46,12 @@ extern "C" {
 #define __STATIC_INLINE
 #endif
 
+#ifdef LCD_NOT_INLINE
+#define _LCD_INLINE
+#else
+#define _LCD_INLINE __STATIC_INLINE
+#endif
+
 //定义LCD的尺寸
 #define LCD_W 240U
 #define LCD_H 135U
